@@ -1,0 +1,55 @@
+#include <stdint.h>
+#include <stdbool.h>
+#include "inc/tm4c123gh6pm.h"
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/gpio.h"
+#include "driverlib/timer.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/adc.h"
+
+void UART1_Init()
+{
+	SYSCTL_RCGCUART_R |= 0x00000002;
+	SYSCTL_RCGCGPIO_R |= 0x00000002;
+	UART1_CTL_R = 0x00000000;
+	UART1_IBRD_R = 0x0000000A;
+	UART1_FBRD_R = 0x00000037;
+	UART1_CC_R = 0x00000000;
+	UART1_LCRH_R = 0x00000060;
+	UART1_CTL_R |= 0x00000300;
+	UART1_CTL_R |= 0x00000001;
+	GPIO_PORTB_AFSEL_R |= 0x00000003;
+	GPIO_PORTB_DEN_R |= 0x00000003;
+	GPIO_PORTB_PCTL_R |= 0x00000011;
+	GPIO_PORTB_AMSEL_R |= 0x00000000;
+}
+
+int main(void)
+{
+	int x=0, i;
+
+	SysCtlClockSet(SYSCTL_SYSDIV_10|SYSCTL_USE_PLL|SYSCTL_XTAL_16MHZ|SYSCTL_OSC_MAIN);
+
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
+	GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3);
+
+	for(i=1; i<=20; i++)
+	{
+		x^=0x02;
+        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3,x);
+		SysCtlDelay(2000000);
+	}
+
+	UART1_Init();
+
+	for(i=1; i<=20; i++)
+	{
+		x^=0x06;
+        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3,x);
+		SysCtlDelay(2000000);
+	}
+
+}
+
